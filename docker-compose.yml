@@ -1,0 +1,39 @@
+version: '3'
+# describe servises
+services:
+# First service - clichouse-server
+  clickhouse-server:
+  # indicate work folder when be Dockerfile for service
+    build: ./clichouse-server
+    # redirect ports
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    # Mount folder for save clickhouse-server, after stoping service clichouse-server
+    volumes:
+      - ./bases:/var/lib/clickhouse
+      # indicate network
+    networks:
+        - clickhouse_network
+    
+# second service clichouse-client
+  clickhouse-client:
+  # indicate use image
+    image: yandex/clickhouse-client
+    # Preventing container shutdown
+    entrypoint:
+      - /bin/sleep
+    command:
+      - infinity
+    networks:
+        - clickhouse_network
+    # This service must start only after start clickhouse-server 
+    depends_on:
+     - clickhouse-server
+# Desckribe network.
+networks:
+  clickhouse_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
